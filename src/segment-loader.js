@@ -606,7 +606,7 @@ export default class SegmentLoader extends videojs.EventTarget {
     this.cacheEncryptionKeys_ = settings.cacheEncryptionKeys;
     this.keyCache_ = {};
     this.externalEncryptionKeysCallback_ = settings.externalEncryptionKeysCallback;
-    
+
     this.decrypter_ = settings.decrypter;
 
     // Manages the tracking and generation of sync-points, mappings
@@ -907,8 +907,12 @@ export default class SegmentLoader extends videojs.EventTarget {
 
     const id = segmentKeyId(key);
     let storedKey = null;
+
     if (this.externalEncryptionKeysCallback_) {
-      storedKey = this.externalEncryptionKeysCallback_(id)
+      storedKey = {
+        resolvedUri: key.resolvedUri,
+        bytes: this.externalEncryptionKeysCallback_(id)
+      };
     } else {
       storedKey = this.keyCache_[id];
     }
