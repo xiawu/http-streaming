@@ -605,7 +605,8 @@ export default class SegmentLoader extends videojs.EventTarget {
     // HLSe playback
     this.cacheEncryptionKeys_ = settings.cacheEncryptionKeys;
     this.keyCache_ = {};
-
+    this.externalEncryptionKeysCallback_ = settings.externalEncryptionKeysCallback;
+    
     this.decrypter_ = settings.decrypter;
 
     // Manages the tracking and generation of sync-points, mappings
@@ -905,7 +906,12 @@ export default class SegmentLoader extends videojs.EventTarget {
     }
 
     const id = segmentKeyId(key);
-    let storedKey = this.keyCache_[id];
+    let storedKey = null;
+    if (this.externalEncryptionKeysCallback_) {
+      storedKey = this.externalEncryptionKeysCallback_(id)
+    } else {
+      storedKey = this.keyCache_[id];
+    }
 
     // TODO: We should use the HTTP Expires header to invalidate our cache per
     // https://tools.ietf.org/html/draft-pantos-http-live-streaming-23#section-6.2.3
