@@ -906,24 +906,23 @@ export default class SegmentLoader extends videojs.EventTarget {
     }
 
     const id = segmentKeyId(key);
-    let storedKey = null;
-
-    if (this.externalEncryptionKeysCallback_) {
-      storedKey = {
-        resolvedUri: key.resolvedUri,
-        bytes: this.externalEncryptionKeysCallback_(id)
-      };
-    } else {
-      storedKey = this.keyCache_[id];
-    }
+    let storedKey = this.keyCache_[id];
 
     // TODO: We should use the HTTP Expires header to invalidate our cache per
     // https://tools.ietf.org/html/draft-pantos-http-live-streaming-23#section-6.2.3
     if (this.cacheEncryptionKeys_ && set && !storedKey && key.bytes) {
-      this.keyCache_[id] = storedKey = {
-        resolvedUri: key.resolvedUri,
-        bytes: key.bytes
-      };
+      if (this.externalEncryptionKeysCallback_) {
+        storedKey = {
+          resolvedUri: key.resolvedUri,
+          bytes: this.externalEncryptionKeysCallback_(id)
+        };
+      } else {
+        storedKey = {
+          resolvedUri: key.resolvedUri,
+          bytes: key.bytes
+        };
+      }
+      this.keyCache_[id] = storedKey;
     }
 
     const result = {
