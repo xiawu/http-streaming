@@ -160,6 +160,7 @@ export class MasterPlaylistController extends videojs.EventTarget {
       enableLowInitialPlaylist,
       sourceType,
       cacheEncryptionKeys,
+      externalEncryptionKeysCallback,
       experimentalBufferBasedABR,
       experimentalLeastPixelDiffSelector,
       captionServices
@@ -253,6 +254,7 @@ export class MasterPlaylistController extends videojs.EventTarget {
       sourceType: this.sourceType_,
       inbandTextTracks: this.inbandTextTracks_,
       cacheEncryptionKeys,
+      externalEncryptionKeysCallback,
       sourceUpdater: this.sourceUpdater_,
       timelineChangeController: this.timelineChangeController_,
       experimentalExactManifestTimings: options.experimentalExactManifestTimings
