@@ -120,7 +120,11 @@ const handleErrors = (error, request) => {
  * @param {Function} finishProcessingFn - a callback to execute to continue processing
  *                                        this request
  */
-const handleKeyResponse = (segment, objects, finishProcessingFn) => (error, request) => {
+const handleKeyResponse = (segment, objects, finishProcessingFn, externalEncryptionKeysCallback) => (error, request) => {
+  if (externalEncryptionKeysCallback) {
+    return finishProcessingFn(null, segment);
+  }
+
   const response = request.response;
   const errorObj = handleErrors(error, request);
 
@@ -982,23 +986,14 @@ export const mediaSegmentRequest = ({
     if (segment.map && !segment.map.bytes && segment.map.key && segment.map.key.resolvedUri === segment.key.resolvedUri) {
       objects.push(segment.map.key);
     }
+    const keyRequestOptions = videojs.mergeOptions(xhrOptions, {
+      uri: segment.key.resolvedUri,
+      responseType: 'arraybuffer'
+    });
+    const keyRequestCallback = handleKeyResponse(segment, objects, finishProcessingFn, externalEncryptionKeysCallback);
+    const keyXhr = xhr(keyRequestOptions, keyRequestCallback);
 
-    if (externalEncryptionKeysCallback) {
-      const bytes = externalEncryptionKeysCallback(segment);
-
-      for (let i = 0; i < objects.length; i++) {
-        objects[i].bytes = bytes;
-      }
-    } else {
-      const keyRequestOptions = videojs.mergeOptions(xhrOptions, {
-        uri: segment.key.resolvedUri,
-        responseType: 'arraybuffer'
-      });
-      const keyRequestCallback = handleKeyResponse(segment, objects, finishProcessingFn);
-      const keyXhr = xhr(keyRequestOptions, keyRequestCallback);
-
-      activeXhrs.push(keyXhr);
-    }
+    activeXhrs.push(keyXhr);
   }
 
   // optionally, request the associated media init segment

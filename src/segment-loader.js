@@ -923,7 +923,11 @@ export default class SegmentLoader extends videojs.EventTarget {
     };
 
     if (storedKey) {
-      result.bytes = storedKey.bytes;
+      if (set) {
+        result.bytes = this.externalEncryptionKeysCallback_(storedKey);
+      } else {
+        result.bytes = storedKey.bytes;
+      }
     }
 
     return result;
