@@ -955,7 +955,8 @@ export const mediaSegmentRequest = ({
   endedTimelineFn,
   dataFn,
   doneFn,
-  onTransmuxerLog
+  onTransmuxerLog,
+  externalEncryptionKeysCallback
 }) => {
   const activeXhrs = [];
   const finishProcessingFn = waitForCompletion({
@@ -981,14 +982,23 @@ export const mediaSegmentRequest = ({
     if (segment.map && !segment.map.bytes && segment.map.key && segment.map.key.resolvedUri === segment.key.resolvedUri) {
       objects.push(segment.map.key);
     }
-    const keyRequestOptions = videojs.mergeOptions(xhrOptions, {
-      uri: segment.key.resolvedUri,
-      responseType: 'arraybuffer'
-    });
-    const keyRequestCallback = handleKeyResponse(segment, objects, finishProcessingFn);
-    const keyXhr = xhr(keyRequestOptions, keyRequestCallback);
 
-    activeXhrs.push(keyXhr);
+    if (externalEncryptionKeysCallback) {
+      const bytes = externalEncryptionKeysCallback(segment);
+
+      for (let i = 0; i < objects.length; i++) {
+        objects[i].bytes = bytes;
+      }
+    } else {
+      const keyRequestOptions = videojs.mergeOptions(xhrOptions, {
+        uri: segment.key.resolvedUri,
+        responseType: 'arraybuffer'
+      });
+      const keyRequestCallback = handleKeyResponse(segment, objects, finishProcessingFn);
+      const keyXhr = xhr(keyRequestOptions, keyRequestCallback);
+
+      activeXhrs.push(keyXhr);
+    }
   }
 
   // optionally, request the associated media init segment
